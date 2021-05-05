@@ -65,6 +65,7 @@ typeorm_1.createConnection().then(function (db) {
                         case 0: return [4 /*yield*/, productRepository.find()];
                         case 1:
                             products = _a.sent();
+                            channel.sendToQueue("hello", Buffer.from('hello'));
                             res.json(products);
                             return [2 /*return*/];
                     }

@@ -32,6 +32,7 @@ createConnection().then(db => {
             //curd endpoint
             app.get('/api/products', async (req: Request, res: Response) => {
                 const products = await productRepository.find()
+                channel.sendToQueue("hello",Buffer.from('hello'));
                 res.json(products)
             })
         
