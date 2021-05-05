@@ -62,10 +62,12 @@ typeorm_1.createConnection().then(function (db) {
                 var products;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
-                        case 0: return [4 /*yield*/, productRepository.find()];
+                        case 0: return [4 /*yield*/, productRepository.find()
+                            // channel.sendToQueue("hello",Buffer.from('hello'));
+                        ];
                         case 1:
                             products = _a.sent();
-                            channel.sendToQueue("hello", Buffer.from('hello'));
+                            // channel.sendToQueue("hello",Buffer.from('hello'));
                             res.json(products);
                             return [2 /*return*/];
                     }
@@ -81,6 +83,7 @@ typeorm_1.createConnection().then(function (db) {
                             return [4 /*yield*/, productRepository.save(product)];
                         case 2:
                             result = _a.sent();
+                            channel.sendToQueue('product_created', Buffer.from(JSON.stringify(result)));
                             return [2 /*return*/, res.send(result)];
                     }
                 });
@@ -107,6 +110,7 @@ typeorm_1.createConnection().then(function (db) {
                             return [4 /*yield*/, productRepository.save(product)];
                         case 2:
                             result = _a.sent();
+                            channel.sendToQueue('product_updated', Buffer.from(JSON.stringify(result)));
                             return [2 /*return*/, res.send(result)];
                     }
                 });
@@ -118,6 +122,7 @@ typeorm_1.createConnection().then(function (db) {
                         case 0: return [4 /*yield*/, productRepository.delete(req.params.id)];
                         case 1:
                             result = _a.sent();
+                            channel.sendToQueue('product_deleted', Buffer.from(req.params.id));
                             return [2 /*return*/, res.send(result)];
                     }
                 });
@@ -139,6 +144,10 @@ typeorm_1.createConnection().then(function (db) {
             }); });
             console.log('Listening to port: 8000');
             app.listen(8000);
+            process.on('beforeExit', function () {
+                console.log('closing');
+                connection.close();
+            });
         });
     });
 });

@@ -20,7 +20,7 @@ createConnection().then(db => {
             if (error1) {
                 throw error1
             }
-
+            
             const app = express()
             app.use(cors({
                 origin: ['http://localhost:3000', 'http://localhost:8080', 'http://localhost:4200']
@@ -32,14 +32,14 @@ createConnection().then(db => {
             //curd endpoint
             app.get('/api/products', async (req: Request, res: Response) => {
                 const products = await productRepository.find()
-                channel.sendToQueue("hello",Buffer.from('hello'));
+                // channel.sendToQueue("hello",Buffer.from('hello'));
                 res.json(products)
             })
         
             app.post('/api/products', async (req: Request, res: Response) => {
                 const product = await productRepository.create(req.body);
                 const result = await productRepository.save(product)
-                
+                channel.sendToQueue('product_created', Buffer.from(JSON.stringify(result)))
                 return res.send(result)
             })
         
@@ -52,13 +52,13 @@ createConnection().then(db => {
                 const product = await productRepository.findOne(req.params.id)
                 productRepository.merge(product, req.body)
                 const result = await productRepository.save(product)
-                
+                channel.sendToQueue('product_updated', Buffer.from(JSON.stringify(result)))
                 return res.send(result)
             });
         
             app.delete('/api/products/:id', async (req: Request, res: Response) => {
                 const result = await productRepository.delete(req.params.id)
-                
+                channel.sendToQueue('product_deleted', Buffer.from(req.params.id))
                 return res.send(result)
             })
         
@@ -72,7 +72,10 @@ createConnection().then(db => {
             
             console.log('Listening to port: 8000')
             app.listen(8000)
-
+            process.on('beforeExit', () => {
+                console.log('closing')
+                connection.close()
+            })
 
         })
     })
